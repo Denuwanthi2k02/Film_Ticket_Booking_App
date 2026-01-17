@@ -5,19 +5,13 @@ import 'package:film_ticket_booking_app/models/seat.dart';
 import 'package:film_ticket_booking_app/models/booking.dart';
 
 
-
-
-
-
-
-
 // Dummy list of Movies
 final List<Movie> dummyMovies = [
-  Movie(movieId: 1, title: 'Crimson Fury', genre: 'Action | Thriller', duration: 135, language: 'English', rating: 8.7, description: 'A rogue agent races against time to expose a global conspiracy before it plunges the world into chaos. Featuring breathtaking stunts and non-stop action.', posterUrl: 'assets/posters/movie1.jpg'),
-  Movie(movieId: 2, title: 'Starfall Odyssey', genre: 'Sci-Fi | Adventure', duration: 150, language: 'English', rating: 9.1, description: 'A lone starship captain undertakes a perilous journey across the galaxy to find the source of a mysterious signal that could save or doom humanity.', posterUrl: 'assets/posters/movie2.jpg'),
-  Movie(movieId: 3, title: 'The Silent Witness', genre: 'Mystery | Drama', duration: 110, language: 'Hindi', rating: 7.5, description: 'When a small-town detective encounters a cryptic witness, the case leads him down a dark path uncovering secrets buried for decades.', posterUrl: 'assets/posters/movie3.jpg'),
-  Movie(movieId: 4, title: 'Neon Samurai', genre: 'Cyberpunk | Action', duration: 120, language: 'Japanese', rating: 8.0, description: 'In a rain-soaked futuristic metropolis, a cybernetically enhanced samurai seeks revenge against the mega-corporation that built him.', posterUrl: 'assets/posters/movie4.jpg'),
-  Movie(movieId: 5, title: 'Ancient Echoes', genre: 'Horror | Supernatural', duration: 95, language: 'Spanish', rating: 6.9, description: 'A group of archaeologists awakens an ancient curse in a remote jungle temple, trapping them in a nightmare where reality blurs with myth.', posterUrl: 'assets/posters/movie5.jpg'),
+  Movie(movieId: 1, title: 'Disney', genre: 'Action | Thriller', duration: 135, language: 'English', rating: 8.7, description: 'A rogue agent races against time to expose a global conspiracy before it plunges the world into chaos. Featuring breathtaking stunts and non-stop action.', posterUrl: 'assets/posters/movie1.png'),
+  Movie(movieId: 2, title: 'Pocahontas', genre: 'Sci-Fi | Adventure', duration: 150, language: 'English', rating: 9.1, description: 'A lone starship captain undertakes a perilous journey across the galaxy to find the source of a mysterious signal that could save or doom humanity.', posterUrl: 'assets/posters/movie2.png'),
+  Movie(movieId: 3, title: 'Dora And The Lost City Of Gold', genre: 'Mystery | Drama', duration: 110, language: 'Hindi', rating: 7.5, description: 'When a small-town detective encounters a cryptic witness, the case leads him down a dark path uncovering secrets buried for decades.', posterUrl: 'assets/posters/movie3.png'),
+  Movie(movieId: 4, title: 'The Assassin', genre: 'Cyberpunk | Action', duration: 120, language: 'Japanese', rating: 8.0, description: 'In a rain-soaked futuristic metropolis, a cybernetically enhanced samurai seeks revenge against the mega-corporation that built him.', posterUrl: 'assets/posters/movie4.png'),
+  Movie(movieId: 5, title: 'She Came To Me', genre: 'Horror | Supernatural', duration: 95, language: 'Spanish', rating: 6.9, description: 'A group of archaeologists awakens an ancient curse in a remote jungle temple, trapping them in a nightmare where reality blurs with myth.', posterUrl: 'assets/posters/movie5.png'),
 ];
 
 // Dummy Showtimes (for Movie 1: Crimson Fury)

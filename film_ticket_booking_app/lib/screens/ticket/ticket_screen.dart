@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:film_ticket_booking_app/config/theme_config.dart';
-// Note: This needs the custom widget below, make sure it's in lib/widgets/
 import 'package:film_ticket_booking_app/widgets/perforated_divider.dart'; 
 import 'package:film_ticket_booking_app/models/movie.dart';
 import 'package:film_ticket_booking_app/models/showtime.dart';
 import 'package:film_ticket_booking_app/models/seat.dart';
-
-
 
 class TicketScreen extends StatelessWidget {
   final Movie movie;
@@ -27,49 +24,71 @@ class TicketScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundBlack,
       appBar: AppBar(
-        title: const Text('Your Ticket', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: backgroundBlack,
-        automaticallyImplyLeading: false, // Prevents accidental back navigation
+        title: const Text(
+          'DIGITAL PASS',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 14),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(25.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // --- Ticket Card Container ---
               Container(
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white, // Light background for high contrast
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 10)),
-                  ],
+                  color: Colors.white.withOpacity(0.03),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: Colors.white.withOpacity(0.08)),
                 ),
                 child: Column(
                   children: [
-                    // Top Section (Movie Info)
+                    // Top Section: Movie Branding
                     _buildTicketHeader(),
                     
-                    // Perforated Divider (Simulates a tear-off stub)
-                    const PerforatedDivider(),
+                    // Perforated Divider
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          _buildCutterCircle(),
+                          const Expanded(child: PerforatedDivider()),
+                          _buildCutterCircle(),
+                        ],
+                      ),
+                    ),
 
-                    // Bottom Section (QR Code & Details)
+                    // Bottom Section: QR & Validation
                     _buildTicketFooter(),
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
-              // Action Button to return home
-              TextButton.icon(
-                onPressed: () {
-                  // Navigate back to the Home Screen
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-                icon: const Icon(Icons.home, color: primaryRed),
-                label: const Text('Back to Home Screen', style: TextStyle(color: primaryRed, fontSize: 16)),
+              const SizedBox(height: 40),
+              
+              // Back to Home Button
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text(
+                    'RETURN TO HOME',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 12),
+                  ),
+                ),
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -78,80 +97,127 @@ class TicketScreen extends StatelessWidget {
   }
 
   Widget _buildTicketHeader() {
-    // Calculate total price
-    final double totalPrice = showtime.price * seats.length;
-
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(32.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Movie Title
-          Text(movie.title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.black)),
-          
-          const SizedBox(height: 10),
-          // Booking Details
-          _buildDetailRow('Date', DateFormat('EEEE, MMM d, y').format(showtime.date), Colors.black54),
-          _buildDetailRow('Time', showtime.time, Colors.black54),
-          _buildDetailRow('Hall', 'Cineplex Main Hall 3', Colors.black54), // Dummy Cinema/Hall
-          
-          const SizedBox(height: 15),
-          
-          // Seat Numbers (Highlighted in Primary Red)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('SEATS:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryRed.withOpacity(0.1),
+                  border: Border.all(color: primaryRed.withOpacity(0.5)),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'CONFIRMED',
+                  style: TextStyle(color: primaryRed, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
+                ),
+              ),
               Text(
-                seats.map((s) => s.seatNumber).join(', '),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: primaryRed),
+                'REF: #$bookingId',
+                style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, fontWeight: FontWeight.bold),
               ),
             ],
           ),
-           const SizedBox(height: 5),
-          _buildDetailRow('Price Paid', '\$${totalPrice.toStringAsFixed(2)}', primaryRed),
+          const SizedBox(height: 24),
+          Text(
+            movie.title.toUpperCase(),
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+          ),
+          const SizedBox(height: 24),
+          _buildInfoGrid(),
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoGrid() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: 2.5,
+      children: [
+        _buildInfoItem('DATE', DateFormat('MMM d, y').format(showtime.date)),
+        _buildInfoItem('TIME', showtime.time),
+        _buildInfoItem('HALL', 'PREMIUM 03'),
+        _buildInfoItem('SEATS', seats.map((s) => s.seatNumber).join(', ')),
+      ],
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 
   Widget _buildTicketFooter() {
-    // Data encoded in QR code
-    final qrData = 'BookingID: $bookingId | Movie: ${movie.title} | Time: ${showtime.time} | Seats: ${seats.map((s) => s.seatNumber).join(',')}';
+    final qrData = 'ID:$bookingId|M:${movie.title}|S:${seats.length}';
 
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(32.0),
       child: Column(
         children: [
-          // QR Code 
-          QrImageView(
-            data: qrData,
-            version: QrVersions.auto,
-            size: 150.0,
-            foregroundColor: Colors.black,
-            // A subtle glow effect could be added here if desired:
-            // eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: primaryRed),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(color: const Color(0xFF09FBD3).withOpacity(0.2), blurRadius: 20, spreadRadius: 2),
+              ],
+            ),
+            child: QrImageView(
+              data: qrData,
+              version: QrVersions.auto,
+              size: 140.0,
+              gapless: false,
+              eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black),
+            ),
           ),
-          const SizedBox(height: 15),
-          
-          // Booking ID Detail
-          _buildDetailRow('Booking Reference', bookingId, Colors.black87),
-          _buildDetailRow('Ticket Type', 'Digital', Colors.black87),
+          const SizedBox(height: 24),
+          Text(
+            'SCAN AT GATE',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.5),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'PLEASE ARRIVE 15 MINS EARLY',
+            style: TextStyle(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
   }
 
-  // Reusable row for ticket details
-  Widget _buildDetailRow(String title, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: TextStyle(fontSize: 14, color: color)),
-          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
-        ],
+  Widget _buildCutterCircle() {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: const BoxDecoration(
+        color: backgroundBlack,
+        shape: BoxShape.circle,
       ),
     );
   }

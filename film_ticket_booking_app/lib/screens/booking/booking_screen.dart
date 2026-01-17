@@ -1,15 +1,11 @@
-// lib/screens/booking/booking_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:film_ticket_booking_app/config/theme_config.dart';
 import 'package:film_ticket_booking_app/models/dummy_data.dart';
-import 'package:film_ticket_booking_app/screens/booking/payment_screen.dart'; // Future Screen
+import 'package:film_ticket_booking_app/screens/booking/payment_screen.dart';
 import 'package:film_ticket_booking_app/models/movie.dart';
 import 'package:film_ticket_booking_app/models/showtime.dart';
 import 'package:film_ticket_booking_app/models/seat.dart';
-
-
-
 
 class BookingScreen extends StatefulWidget {
   final Movie movie;
@@ -28,13 +24,11 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize with the first date/showtime and dummy seats
     _selectedDate = dummyShowtimes.first.date;
     _selectedShowtime = dummyShowtimes.first;
     _seats = getDummySeats();
   }
-  
-  // --- State Management Logic ---
+
   void _selectSeat(Seat seat) {
     if (seat.status == SeatStatus.booked) return;
 
@@ -53,12 +47,10 @@ class _BookingScreenState extends State<BookingScreen> {
   void _selectDate(DateTime date) {
     setState(() {
       _selectedDate = date;
-      // Reset showtime selection when date changes
       _selectedShowtime = dummyShowtimes.firstWhere(
         (st) => DateUtils.isSameDay(st.date, date),
         orElse: () => dummyShowtimes.first,
       );
-      // Re-fetch/Re-generate dummy seats for the new showtime
       _seats = getDummySeats();
     });
   }
@@ -66,12 +58,10 @@ class _BookingScreenState extends State<BookingScreen> {
   void _selectShowtime(Showtime showtime) {
     setState(() {
       _selectedShowtime = showtime;
-      // Re-fetch/Re-generate dummy seats for the new showtime
       _seats = getDummySeats();
     });
   }
 
-  // --- Calculations ---
   List<Seat> get _selectedSeats => _seats.where((s) => s.status == SeatStatus.selected).toList();
   double get _totalAmount => _selectedSeats.length * (_selectedShowtime?.price ?? 0.0);
   String get _selectedSeatNumbers => _selectedSeats.map((s) => s.seatNumber).join(', ');
@@ -79,9 +69,19 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundBlack,
       appBar: AppBar(
-        title: Text(widget.movie.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: backgroundBlack,
+        title: Text(
+          widget.movie.title.toUpperCase(), 
+          style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 16)
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Column(
         children: [
@@ -104,23 +104,31 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // --- Widgets ---
-
-  // Part A: Showtime Selection
   Widget _buildDateSelector() {
-    // Get unique dates from dummy showtimes
-    final uniqueDates = dummyShowtimes.map((st) => st.date).where((date) => date.isAfter(DateTime.now().subtract(const Duration(hours: 12)))).toSet().toList();
+    final uniqueDates = dummyShowtimes
+        .map((st) => st.date)
+        .where((date) => date.isAfter(DateTime.now().subtract(const Duration(hours: 12))))
+        .toSet()
+        .toList();
     uniqueDates.sort();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
-          child: Text('📅 Select Date', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Padding(
+          padding: const EdgeInsets.only(left: 20.0, top: 16.0, bottom: 12.0),
+          child: Text(
+            'SELECT DATE',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.4),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2,
+            ),
+          ),
         ),
         SizedBox(
-          height: 80,
+          height: 90,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -130,19 +138,40 @@ class _BookingScreenState extends State<BookingScreen> {
               final isSelected = DateUtils.isSameDay(date, _selectedDate);
               return GestureDetector(
                 onTap: () => _selectDate(date),
-                child: Container(
-                  width: 60,
-                  margin: const EdgeInsets.only(right: 10),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 65,
+                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected ? primaryRed : backgroundBlack.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: isSelected ? primaryRed : foregroundLight.withOpacity(0.3)),
+                    color: isSelected ? primaryRed : Colors.white.withOpacity(0.03),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: isSelected ? primaryRed : Colors.white.withOpacity(0.08),
+                    ),
+                    boxShadow: isSelected ? [
+                      BoxShadow(color: primaryRed.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))
+                    ] : [],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(DateFormat('EEE').format(date), style: TextStyle(color: isSelected ? Colors.white : foregroundLight.withOpacity(0.8), fontSize: 14)),
-                      Text(DateFormat('d').format(date), style: TextStyle(color: isSelected ? Colors.white : foregroundLight, fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text(
+                        DateFormat('EEE').format(date).toUpperCase(),
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.white.withOpacity(0.4),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('d').format(date),
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -160,30 +189,46 @@ class _BookingScreenState extends State<BookingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
-          child: Text('🕒 Select Time', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Padding(
+          padding: const EdgeInsets.only(left: 20.0, top: 12.0, bottom: 12.0),
+          child: Text(
+            'SELECT SHOWTIME',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.4),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2,
+            ),
+          ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Wrap(
-            spacing: 10.0,
-            runSpacing: 10.0,
+            spacing: 12.0,
+            runSpacing: 12.0,
             children: availableShowtimes.map((st) {
               final isSelected = st.showtimeId == _selectedShowtime?.showtimeId;
-              // Dummy logic for 'unavailable' time slots (e.g., first one on the list)
               final isAvailable = st.showtimeId != availableShowtimes.first.showtimeId || availableShowtimes.length == 1;
 
-              return ChoiceChip(
-                label: Text(st.time),
-                selected: isSelected,
-                onSelected: isAvailable ? (_) => _selectShowtime(st) : null,
-                selectedColor: primaryRed,
-                backgroundColor: backgroundBlack,
-                side: BorderSide(color: isSelected ? primaryRed : foregroundLight.withOpacity(0.3)),
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : (isAvailable ? foregroundLight : bookedGrey),
-                  decoration: isAvailable ? TextDecoration.none : TextDecoration.lineThrough,
+              return GestureDetector(
+                onTap: isAvailable ? () => _selectShowtime(st) : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF09FBD3).withOpacity(0.1) : Colors.white.withOpacity(0.03),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF09FBD3) : Colors.white.withOpacity(0.08),
+                    ),
+                  ),
+                  child: Text(
+                    st.time,
+                    style: TextStyle(
+                      color: isSelected ? const Color(0xFF09FBD3) : (isAvailable ? Colors.white70 : Colors.white24),
+                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal,
+                      decoration: isAvailable ? TextDecoration.none : TextDecoration.lineThrough,
+                    ),
+                  ),
                 ),
               );
             }).toList(),
@@ -193,111 +238,80 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // Part B: Seat Selection
   Widget _buildSeatMap(BuildContext context) {
-    // Determine number of rows and columns from dummy seats
     final seatNumbers = _seats.map((s) => s.seatNumber).toList();
     final rows = seatNumbers.map((s) => s.substring(0, 1)).toSet().toList()..sort();
     final cols = seatNumbers.map((s) => int.parse(s.substring(1))).toSet().toList()..sort();
     final numCols = cols.length;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 25.0, bottom: 20.0),
+      padding: const EdgeInsets.symmetric(vertical: 40.0),
       child: Column(
         children: [
-          // Cinema Screen (Curved, Glowing Line)
-          Container(
-            height: 10,
-            margin: const EdgeInsets.symmetric(horizontal: 50),
-            decoration: BoxDecoration(
-              color: foregroundLight.withOpacity(0.8),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(50),
-                topRight: Radius.circular(50),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: primaryRed.withOpacity(0.5),
-                  blurRadius: 15,
-                  spreadRadius: 2,
+          // Cyberpunk Screen
+          Column(
+            children: [
+              Container(
+                height: 4,
+                width: MediaQuery.of(context).size.width * 0.7,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    colors: [
+                      primaryRed.withOpacity(0),
+                      primaryRed,
+                      primaryRed.withOpacity(0),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(color: primaryRed.withOpacity(0.8), blurRadius: 15, spreadRadius: 2),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'SCREEN',
+                style: TextStyle(
+                  color: primaryRed.withOpacity(0.5),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 8,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 5),
-          const Text('SCREEN', style: TextStyle(color: foregroundLight, fontSize: 12)),
-          const SizedBox(height: 25),
+          const SizedBox(height: 40),
 
-          // Seat Grid
+          // Grid
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: numCols + 1, // +1 for the row label
+                crossAxisCount: numCols + 1,
                 childAspectRatio: 1.0,
-                mainAxisSpacing: 5.0,
-                crossAxisSpacing: 2.0,
+                mainAxisSpacing: 8.0,
+                crossAxisSpacing: 8.0,
               ),
               itemCount: (numCols + 1) * rows.length,
               itemBuilder: (context, index) {
                 final row = rows[index ~/ (numCols + 1)];
                 final colIndex = index % (numCols + 1);
 
-                // Row Label Column
                 if (colIndex == 0) {
-                  return Center(child: Text(row, style: TextStyle(color: foregroundLight.withOpacity(0.6), fontWeight: FontWeight.bold)));
+                  return Center(
+                    child: Text(
+                      row,
+                      style: TextStyle(color: Colors.white.withOpacity(0.2), fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  );
                 }
 
-                // Seat Column
                 final seatNumber = '$row${cols[colIndex - 1]}';
                 final seat = _seats.firstWhere((s) => s.seatNumber == seatNumber);
                 
-                Color seatColor;
-                Color borderColor;
-
-                switch (seat.status) {
-                  case SeatStatus.available:
-                    seatColor = Colors.transparent;
-                    borderColor = foregroundLight.withOpacity(0.4);
-                    break;
-                  case SeatStatus.booked:
-                    seatColor = bookedGrey;
-                    borderColor = bookedGrey;
-                    break;
-                  case SeatStatus.selected:
-                    seatColor = primaryRed;
-                    borderColor = primaryRed;
-                    break;
-                }
-
-                // Premium Seat Border
-                if (seat.seatType == SeatType.premium && seat.status != SeatStatus.selected) {
-                    borderColor = accentYellow;
-                }
-
-                return GestureDetector(
-                  onTap: () => _selectSeat(seat),
-                  child: Container(
-                    margin: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: seatColor,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: borderColor, width: 1.5),
-                    ),
-                    child: Center(
-                      child: Text(
-                        seat.status == SeatStatus.booked ? 'X' : seat.seatNumber.substring(1),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: seat.status == SeatStatus.booked ? backgroundBlack : foregroundLight,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
+                return _buildSeatWidget(seat);
               },
             ),
           ),
@@ -306,16 +320,59 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  Widget _buildSeatWidget(Seat seat) {
+    bool isSelected = seat.status == SeatStatus.selected;
+    bool isBooked = seat.status == SeatStatus.booked;
+    bool isPremium = seat.seatType == SeatType.premium;
+
+    Color color = Colors.transparent;
+    Color border = Colors.white.withOpacity(0.15);
+    
+    if (isBooked) {
+      color = Colors.white.withOpacity(0.05);
+      border = Colors.transparent;
+    } else if (isSelected) {
+      color = primaryRed;
+      border = primaryRed;
+    } else if (isPremium) {
+      border = accentYellow.withOpacity(0.5);
+    }
+
+    return GestureDetector(
+      onTap: () => _selectSeat(seat),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: border, width: 1.5),
+          boxShadow: isSelected ? [
+            BoxShadow(color: primaryRed.withOpacity(0.4), blurRadius: 8)
+          ] : [],
+        ),
+        child: Center(
+          child: Text(
+            isBooked ? '' : seat.seatNumber.substring(1),
+            style: TextStyle(
+              fontSize: 8,
+              color: isSelected ? Colors.white : Colors.white.withOpacity(0.3),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSeatLegend() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _legendItem(Colors.transparent, 'Available', foregroundLight.withOpacity(0.4)),
-          _legendItem(bookedGrey, 'Booked', bookedGrey),
-          _legendItem(primaryRed, 'Selected', primaryRed),
-          _legendItem(Colors.transparent, 'Premium', accentYellow),
+          _legendItem(Colors.transparent, 'FREE', Colors.white.withOpacity(0.2)),
+          _legendItem(Colors.white.withOpacity(0.1), 'TAKEN', Colors.transparent),
+          _legendItem(primaryRed, 'YOURS', primaryRed),
+          _legendItem(Colors.transparent, 'PREMIUM', accentYellow),
         ],
       ),
     );
@@ -325,36 +382,32 @@ class _BookingScreenState extends State<BookingScreen> {
     return Row(
       children: [
         Container(
-          width: 12,
-          height: 12,
+          width: 10,
+          height: 10,
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(3),
-            border: Border.all(color: borderColor, width: 1),
+            border: Border.all(color: borderColor),
           ),
         ),
-        const SizedBox(width: 5),
-        Text(label, style: TextStyle(fontSize: 12, color: foregroundLight.withOpacity(0.8))),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white.withOpacity(0.4), letterSpacing: 1),
+        ),
       ],
     );
   }
 
-
-  // --- Bottom Summary ---
   Widget _buildBookingSummary(BuildContext context) {
     final bool canProceed = _selectedSeats.isNotEmpty;
     
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 15, 20, 30),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
       decoration: BoxDecoration(
-        color: backgroundBlack,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.8),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
+        color: const Color(0xFF0D0D0D),
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -362,27 +415,48 @@ class _BookingScreenState extends State<BookingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Seats: ${_selectedSeats.length} (${_selectedSeatNumbers})',
-                style: const TextStyle(fontSize: 16, color: foregroundLight),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_selectedSeats.length} SEATS SELECTED',
+                    style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _selectedSeats.isEmpty ? 'NONE' : _selectedSeatNumbers,
+                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900),
+                  ),
+                ],
               ),
-              Text(
-                'Total: \$${_totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryRed),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'TOTAL PRICE',
+                    style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$${_totalAmount.toStringAsFixed(2)}',
+                    style: const TextStyle(color: primaryRed, fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
+            height: 60,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryRed,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                disabledBackgroundColor: Colors.white.withOpacity(0.05),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
               ),
               onPressed: canProceed ? () {
-                // Navigate to Payment Screen
                 Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentScreen(
                   movie: widget.movie,
                   showtime: _selectedShowtime!,
@@ -391,8 +465,13 @@ class _BookingScreenState extends State<BookingScreen> {
                 )));
               } : null,
               child: Text(
-                canProceed ? 'PROCEED TO PAYMENT' : 'SELECT YOUR SEATS',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                canProceed ? 'PROCEED TO PAYMENT' : 'CHOOSE YOUR SEATS',
+                style: TextStyle(
+                  fontSize: 14, 
+                  fontWeight: FontWeight.w900, 
+                  letterSpacing: 2,
+                  color: canProceed ? Colors.white : Colors.white24,
+                ),
               ),
             ),
           ),
