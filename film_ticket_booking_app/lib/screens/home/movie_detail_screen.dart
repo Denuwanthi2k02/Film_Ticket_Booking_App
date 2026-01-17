@@ -273,26 +273,4 @@ class MovieDetailScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildCastCircle() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16),
-      child: Column(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-              border: Border.all(color: Colors.white10),
-            ),
-            child: const Icon(Icons.person_outline, color: Colors.white24),
-          ),
-          const SizedBox(height: 8),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2))),
-        ],
-      ),
-    );
-  }
 }

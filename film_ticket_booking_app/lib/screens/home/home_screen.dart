@@ -11,8 +11,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Creative Palette extension to match Profile Screen
-    const Color neonCyan = Color(0xFF09FBD3);
+    
 
     return SafeArea(
       child: Scaffold(

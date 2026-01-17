@@ -142,19 +142,6 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
 
-                // --- Stats Row ---
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildStatItem("CREDITS", "240"),
-                      _buildStatItem("MOVIES", "18"),
-                      _buildStatItem("REVIEWS", "5"),
-                    ],
-                  ),
-                ),
-
                 const SizedBox(height: 40),
 
                 // --- Details & Preferences ---
