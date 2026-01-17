@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:film_ticket_booking_app/config/theme_config.dart';
-import 'login_screen.dart';
-import 'package:film_ticket_booking_app/models/user.dart';
+import '../../services/auth_service.dart';
+import 'package:film_ticket_booking_app/screens/home/home_screen.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -30,27 +30,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // Check if email already exists
-    bool exists = await UserDB.emailExists(email);
-    if (exists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email already registered')),
-      );
-      return;
-    }
+    bool success = await AuthService.register(
+    name,
+    email,
+    password,
+    phone,
+  );
 
-    // Insert new user
-    await UserDB.insertUser(User(name: name, email: email, password: password, phone: phone));
-
+  if (success) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Registration successful! Please login.')),
+      const SnackBar(content: Text('Registration successful!')),
     );
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Registration failed')),
     );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

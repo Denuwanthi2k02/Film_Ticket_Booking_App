@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  http: ^1.2.0
   carousel_slider: ^5.0.0 # For Home Screen
   qr_flutter: ^4.1.0      # For Ticket Screen
   intl: ^0.18.1           # For Date formatting

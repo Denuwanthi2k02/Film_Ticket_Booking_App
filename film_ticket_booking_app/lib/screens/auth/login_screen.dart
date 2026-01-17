@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:film_ticket_booking_app/config/theme_config.dart';
 import 'register_screen.dart';
 import 'package:film_ticket_booking_app/screens/home/home_screen.dart';
-import 'package:film_ticket_booking_app/models/user.dart';
+import '../../services/auth_service.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -27,16 +27,22 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    User? user = await UserDB.getUser(email, password);
+    bool success = await AuthService.login(
+      email,
+      password
+    );
 
-    if (user != null) {
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login successful!')),
+    );
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid email or password')),
+        const SnackBar(content: Text('Login failed')),
       );
     }
   }
