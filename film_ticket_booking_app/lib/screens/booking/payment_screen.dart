@@ -5,6 +5,7 @@ import 'package:film_ticket_booking_app/screens/ticket/ticket_screen.dart';
 import 'package:film_ticket_booking_app/models/movie.dart';
 import 'package:film_ticket_booking_app/models/showtime.dart';
 import 'package:film_ticket_booking_app/models/seat.dart';
+import 'package:film_ticket_booking_app/services/booking_service.dart';
 
 class PaymentScreen extends StatefulWidget {
   final Movie movie;
@@ -30,24 +31,44 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Future<void> _processPayment(BuildContext context) async {
     setState(() => _isProcessing = true);
 
-    // Simulate network delay for premium feel
-    await Future.delayed(const Duration(seconds: 3));
+    try {
+      // Create booking in database
+      final booking = await BookingService.createBooking(
+        movieId: widget.movie.id,
+        showtimeId: widget.showtime.id,
+        seatNumbers: widget.seats.map((s) => s.seatNumber).toList(),
+        totalAmount: widget.totalAmount,
+      );
 
-    if (!mounted) return;
-
-    // Navigate to Ticket Screen
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TicketScreen(
-          movie: widget.movie,
-          showtime: widget.showtime,
-          seats: widget.seats,
-          bookingId: 'NOVA-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-        ),
-      ),
-      (route) => route.isFirst, // Go back to home after ticket
-    );
+      // Navigate to ticket screen with the actual booking ID from database
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TicketScreen(
+              movie: widget.movie,
+              showtime: widget.showtime,
+              seats: widget.seats,
+              bookingId: booking.bookingId,
+            ),
+          ),
+          (route) => route.isFirst, // Go back to home after ticket
+        );
+      }
+    } catch (e) {
+      print('Payment error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment failed: ${e.toString()}'),
+            backgroundColor: primaryRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+        setState(() => _isProcessing = false);
+      }
+    }
   }
 
   @override
@@ -165,21 +186,46 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildPriceBreakdown() {
+    final serviceFee = 1.50;
+    final totalPayable = widget.totalAmount + serviceFee;
+
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('SUBTOTAL', style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 12, fontWeight: FontWeight.bold)),
-            Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text(
+              'SUBTOTAL',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.3),
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+            Text(
+              'Rs${widget.totalAmount.toStringAsFixed(2)}',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('SERVICE FEE', style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 12, fontWeight: FontWeight.bold)),
-            const Text('\$1.50', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text(
+              'SERVICE FEE',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.3),
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+            Text(
+              'Rs${serviceFee.toStringAsFixed(2)}',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         const Padding(
@@ -189,9 +235,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('TOTAL PAYABLE', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
+            const Text(
+              'TOTAL PAYABLE',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1,
+              ),
+            ),
             Text(
-              '\$${(widget.totalAmount + 1.5).toStringAsFixed(2)}',
+              'Rs${totalPayable.toStringAsFixed(2)}',
               style: const TextStyle(color: primaryRed, fontSize: 24, fontWeight: FontWeight.w900),
             ),
           ],
@@ -210,11 +264,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 0,
         ),
-        onPressed: () => _processPayment(context),
-        child: const Text(
-          'CONFIRM & PAY',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white),
-        ),
+        onPressed: _isProcessing ? null : () => _processPayment(context),
+        child: _isProcessing
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Text(
+                'CONFIRM & PAY',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white),
+              ),
       ),
     );
   }
@@ -237,7 +300,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           const SizedBox(height: 30),
           Text(
-            'ENCRYPTING TRANSACTION...',
+            'PROCESSING PAYMENT...',
             style: TextStyle(
               color: Colors.white.withOpacity(0.5),
               fontSize: 10,
@@ -249,6 +312,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const Text(
             'PLEASE DO NOT CLOSE THE APP',
             style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Creating booking for ${widget.seats.length} seat(s)',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.6),
+              fontSize: 11,
+            ),
           ),
         ],
       ),

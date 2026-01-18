@@ -1,15 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:film_ticket_booking_app/config/theme_config.dart';
+import 'package:film_ticket_booking_app/services/movie_service.dart';
 import 'package:film_ticket_booking_app/screens/booking/booking_screen.dart';
 import 'package:film_ticket_booking_app/models/movie.dart';
 
-class MovieDetailScreen extends StatelessWidget {
-  final Movie movie;
+class MovieDetailScreen extends StatefulWidget {
+  final String movieId;
 
-  const MovieDetailScreen({super.key, required this.movie});
+  const MovieDetailScreen({super.key, required this.movieId});
+
+  @override
+  State<MovieDetailScreen> createState() => _MovieDetailScreenState();
+}
+
+class _MovieDetailScreenState extends State<MovieDetailScreen> {
+  late Future<Movie> _movieFuture;
+  Movie? _movie;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMovie();
+  }
+
+  Future<void> _loadMovie() async {
+    try {
+      _movie = await MovieService.getMovieById(widget.movieId);
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading movie: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: backgroundBlack,
+        body: Center(
+          child: CircularProgressIndicator(color: primaryRed),
+        ),
+      );
+    }
+
+    if (_movie == null) {
+      return Scaffold(
+        backgroundColor: backgroundBlack,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Center(
+          child: Text(
+            'Error loading movie',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+    }
+
+    return _buildMovieDetailScaffold(context, _movie!);
+  }
+
+  Widget _buildMovieDetailScaffold(BuildContext context, Movie movie) {
     const Color neonCyan = Color(0xFF09FBD3);
 
     return Scaffold(
@@ -19,8 +80,8 @@ class MovieDetailScreen extends StatelessWidget {
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              _buildSliverAppBar(context),
-              _buildSliverDetails(neonCyan),
+              _buildSliverAppBar(context, movie),
+              _buildSliverDetails(neonCyan, movie),
             ],
           ),
 
@@ -108,7 +169,7 @@ class MovieDetailScreen extends StatelessWidget {
   }
 
   // ================= SLIVER APP BAR =================
-  Widget _buildSliverAppBar(BuildContext context) {
+  Widget _buildSliverAppBar(BuildContext context, Movie movie) {
     return SliverAppBar(
       automaticallyImplyLeading: false,
       backgroundColor: backgroundBlack,
@@ -116,13 +177,37 @@ class MovieDetailScreen extends StatelessWidget {
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         background: Hero(
-          tag: 'movie-poster-${movie.movieId}',
+          tag: 'movie-poster-${movie.id}', // Updated from movie.movieId to movie.id
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
+              // Use Image.network for database URL instead of Image.asset
+              Image.network(
                 movie.posterUrl,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey[800],
+                  child: const Icon(
+                    Icons.movie_outlined,
+                    color: Colors.white30,
+                    size: 100,
+                  ),
+                ),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: Colors.grey[900],
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                        color: primaryRed,
+                      ),
+                    ),
+                  );
+                },
               ),
               // Sophisticated Gradient for text readability
               Container(
@@ -148,7 +233,7 @@ class MovieDetailScreen extends StatelessWidget {
   }
 
   // ================= DETAILS =================
-  Widget _buildSliverDetails(Color neonCyan) {
+  Widget _buildSliverDetails(Color neonCyan, Movie movie) {
     return SliverList(
       delegate: SliverChildListDelegate(
         [
@@ -186,7 +271,7 @@ class MovieDetailScreen extends StatelessWidget {
                           const Icon(Icons.star_rounded, color: accentYellow, size: 20),
                           const SizedBox(width: 4),
                           Text(
-                            movie.rating.toString(),
+                            movie.rating.toStringAsFixed(1), // Format rating
                             style: const TextStyle(
                               color: accentYellow,
                               fontSize: 16,

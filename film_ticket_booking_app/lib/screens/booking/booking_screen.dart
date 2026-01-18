@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:film_ticket_booking_app/config/theme_config.dart';
-import 'package:film_ticket_booking_app/models/dummy_data.dart';
+import 'package:film_ticket_booking_app/services/showtime_service.dart';
 import 'package:film_ticket_booking_app/screens/booking/payment_screen.dart';
 import 'package:film_ticket_booking_app/models/movie.dart';
 import 'package:film_ticket_booking_app/models/showtime.dart';
@@ -19,14 +19,63 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen> {
   DateTime? _selectedDate;
   Showtime? _selectedShowtime;
+  List<Showtime> _showtimes = [];
   List<Seat> _seats = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _selectedDate = dummyShowtimes.first.date;
-    _selectedShowtime = dummyShowtimes.first;
-    _seats = getDummySeats();
+    _loadShowtimes();
+  }
+
+  Future<void> _loadShowtimes() async {
+    try {
+      final showtimes = await ShowtimeService.getShowtimesByMovie(widget.movie.id);
+      setState(() {
+        _showtimes = showtimes;
+        if (showtimes.isNotEmpty) {
+          _selectedDate = showtimes.first.date;
+          _selectedShowtime = showtimes.first;
+          _seats = _generateSeats(); // Generate seats based on showtime
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading showtimes: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  List<Seat> _generateSeats() {
+    // Generate seats dynamically based on showtime
+    // You might want to store seat data in database too
+    List<Seat> seats = [];
+    const int rows = 8;
+    const int cols = 10;
+    
+    for (int i = 0; i < rows; i++) {
+      String row = String.fromCharCode('A'.codeUnitAt(0) + i);
+      for (int j = 1; j <= cols; j++) {
+        String seatNum = '$row$j';
+        SeatType type = i < 2 ? SeatType.premium : SeatType.standard;
+        SeatStatus status = SeatStatus.available; // Default to available
+        
+        // TODO: Check seat availability from database
+        // For now, mark some seats as booked randomly
+        if (j % 5 == 0 && i < 6) {
+          status = SeatStatus.booked;
+        }
+        
+        seats.add(Seat(
+          seatId: seatNum,
+          seatNumber: seatNum,
+          seatType: type,
+          status: status,
+        ));
+      }
+    }
+    return seats;
   }
 
   void _selectSeat(Seat seat) {
@@ -47,18 +96,20 @@ class _BookingScreenState extends State<BookingScreen> {
   void _selectDate(DateTime date) {
     setState(() {
       _selectedDate = date;
-      _selectedShowtime = dummyShowtimes.firstWhere(
+      // Find showtime for selected date
+      _selectedShowtime = _showtimes.firstWhere(
         (st) => DateUtils.isSameDay(st.date, date),
-        orElse: () => dummyShowtimes.first,
+        orElse: () => _showtimes.first,
       );
-      _seats = getDummySeats();
+      _seats = _generateSeats();
     });
   }
 
   void _selectShowtime(Showtime showtime) {
     setState(() {
       _selectedShowtime = showtime;
-      _seats = getDummySeats();
+      _selectedDate = showtime.date;
+      _seats = _generateSeats();
     });
   }
 
@@ -68,6 +119,63 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: backgroundBlack,
+        appBar: AppBar(
+          title: Text(
+            widget.movie.title.toUpperCase(), 
+            style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 16)
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: primaryRed),
+        ),
+      );
+    }
+
+    if (_showtimes.isEmpty) {
+      return Scaffold(
+        backgroundColor: backgroundBlack,
+        appBar: AppBar(
+          title: Text(
+            widget.movie.title.toUpperCase(), 
+            style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 16)
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: primaryRed, size: 50),
+              const SizedBox(height: 20),
+              Text(
+                'No showtimes available',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: backgroundBlack,
       appBar: AppBar(
@@ -105,12 +213,16 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildDateSelector() {
-    final uniqueDates = dummyShowtimes
+    final uniqueDates = _showtimes
         .map((st) => st.date)
         .where((date) => date.isAfter(DateTime.now().subtract(const Duration(hours: 12))))
         .toSet()
         .toList();
     uniqueDates.sort();
+
+    if (uniqueDates.isEmpty) {
+      return Container();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +296,12 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildShowtimeSelector() {
-    final availableShowtimes = dummyShowtimes.where((st) => DateUtils.isSameDay(st.date, _selectedDate)).toList();
+    final availableShowtimes = _showtimes.where((st) => 
+      _selectedDate != null && DateUtils.isSameDay(st.date, _selectedDate!)).toList();
+
+    if (availableShowtimes.isEmpty) {
+      return Container();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,11 +324,10 @@ class _BookingScreenState extends State<BookingScreen> {
             spacing: 12.0,
             runSpacing: 12.0,
             children: availableShowtimes.map((st) {
-              final isSelected = st.showtimeId == _selectedShowtime?.showtimeId;
-              final isAvailable = st.showtimeId != availableShowtimes.first.showtimeId || availableShowtimes.length == 1;
+              final isSelected = st.id == _selectedShowtime?.id;
 
               return GestureDetector(
-                onTap: isAvailable ? () => _selectShowtime(st) : null,
+                onTap: () => _selectShowtime(st),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
@@ -224,9 +340,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   child: Text(
                     st.time,
                     style: TextStyle(
-                      color: isSelected ? const Color(0xFF09FBD3) : (isAvailable ? Colors.white70 : Colors.white24),
+                      color: isSelected ? const Color(0xFF09FBD3) : Colors.white70,
                       fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal,
-                      decoration: isAvailable ? TextDecoration.none : TextDecoration.lineThrough,
                     ),
                   ),
                 ),
@@ -239,6 +354,10 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildSeatMap(BuildContext context) {
+    if (_seats.isEmpty) {
+      return Container();
+    }
+
     final seatNumbers = _seats.map((s) => s.seatNumber).toList();
     final rows = seatNumbers.map((s) => s.substring(0, 1)).toSet().toList()..sort();
     final cols = seatNumbers.map((s) => int.parse(s.substring(1))).toSet().toList()..sort();
@@ -438,7 +557,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '\$${_totalAmount.toStringAsFixed(2)}',
+                    'Rs${_totalAmount.toStringAsFixed(2)}',
                     style: const TextStyle(color: primaryRed, fontSize: 20, fontWeight: FontWeight.w900),
                   ),
                 ],
@@ -457,12 +576,14 @@ class _BookingScreenState extends State<BookingScreen> {
                 elevation: 0,
               ),
               onPressed: canProceed ? () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentScreen(
-                  movie: widget.movie,
-                  showtime: _selectedShowtime!,
-                  seats: _selectedSeats,
-                  totalAmount: _totalAmount,
-                )));
+                if (_selectedShowtime != null) {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentScreen(
+                    movie: widget.movie,
+                    showtime: _selectedShowtime!,
+                    seats: _selectedSeats,
+                    totalAmount: _totalAmount,
+                  )));
+                }
               } : null,
               child: Text(
                 canProceed ? 'PROCEED TO PAYMENT' : 'CHOOSE YOUR SEATS',

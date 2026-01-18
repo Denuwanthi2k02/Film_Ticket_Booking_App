@@ -2,11 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:film_ticket_booking_app/config/theme_config.dart';
-import 'package:film_ticket_booking_app/models/dummy_data.dart';
+import 'package:film_ticket_booking_app/services/booking_service.dart';
 import 'package:film_ticket_booking_app/models/booking.dart';
 
-class BookingsScreen extends StatelessWidget {
+class BookingsScreen extends StatefulWidget {
   const BookingsScreen({super.key});
+
+  @override
+  State<BookingsScreen> createState() => _BookingsScreenState();
+}
+
+class _BookingsScreenState extends State<BookingsScreen> {
+  List<Booking> _bookings = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookings();
+  }
+
+  Future<void> _loadBookings() async {
+    try {
+      final bookings = await BookingService.getUserBookings();
+      setState(() {
+        _bookings = bookings;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading bookings: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _refreshBookings() {
+    setState(() {
+      _isLoading = true;
+    });
+    _loadBookings();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +63,30 @@ class BookingsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new, color: accentYellow, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: accentYellow),
+            onPressed: _refreshBookings,
+          ),
+        ],
       ),
-      body: dummyBookings.isEmpty
-          ? _emptyState()
-          : ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              itemCount: dummyBookings.length,
-              itemBuilder: (context, index) {
-                final booking = dummyBookings[index];
-                return _bookingCard(context, booking);
-              },
-            ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: primaryRed))
+          : _bookings.isEmpty
+              ? _emptyState()
+              : RefreshIndicator(
+                  onRefresh: _loadBookings,
+                  color: primaryRed,
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    itemCount: _bookings.length,
+                    itemBuilder: (context, index) {
+                      final booking = _bookings[index];
+                      return _bookingCard(context, booking);
+                    },
+                  ),
+                ),
     );
   }
 
@@ -73,6 +119,18 @@ class BookingsScreen extends StatelessWidget {
             'Time to catch a new release!',
             style: TextStyle(color: foregroundLight.withOpacity(0.5), fontSize: 13),
           ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _refreshBookings,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('REFRESH'),
+          ),
         ],
       ),
     );
@@ -81,11 +139,20 @@ class BookingsScreen extends StatelessWidget {
   // ================= CREATIVE BOOKING CARD =================
   Widget _bookingCard(BuildContext context, Booking booking) {
     const Color neonCyan = Color(0xFF09FBD3);
-    final dateFormat = DateFormat('EEE, MMM d');
-    final formattedDateTime = '${dateFormat.format(booking.showtime.date)} at ${booking.showtime.time}';
-    final isExpired = booking.status == 'Expired';
-
-    final qrData = 'BookingID: ${booking.bookingId}|${booking.movie.title}|${booking.seatNumbers.join(', ')}';
+    
+    // Use helper methods or direct properties (using the helper getters from Booking model)
+    final movieTitle = booking.movieTitle;
+    final posterUrl = booking.movie?.posterUrl ?? '';
+    final showtimeDate = booking.showtimeDate;
+    final showtimeTime = booking.showtimeTime;
+    final formattedDate = DateFormat('EEE, MMM d').format(showtimeDate);
+    final formattedDateTime = '$formattedDate at $showtimeTime';
+    
+    // Check if booking is expired (showtime date is in the past)
+    final isExpired = showtimeDate.isBefore(DateTime.now()) || 
+                      booking.status.toLowerCase() == 'expired';
+    
+    final qrData = 'BookingID: ${booking.bookingId}|$movieTitle|${booking.seatNumbers.join(', ')}';
     
     Color statusAccent = isExpired ? Colors.white24 : (booking.status == 'Confirmed' ? neonCyan : primaryRed);
 
@@ -110,12 +177,42 @@ class BookingsScreen extends StatelessWidget {
                       isExpired ? Colors.black.withOpacity(0.8) : Colors.transparent, 
                       BlendMode.darken
                     ),
-                    child: Image.asset(
-                      booking.movie.posterUrl, 
-                      width: 110,
-                      height: 170,
-                      fit: BoxFit.cover,
-                    ),
+                    child: posterUrl.isNotEmpty
+                        ? Image.network(
+                            posterUrl,
+                            width: 110,
+                            height: 170,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: 110,
+                                height: 170,
+                                color: Colors.grey[800],
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                        : null,
+                                    color: primaryRed,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) => 
+                              Container(
+                                width: 110,
+                                height: 170,
+                                color: Colors.grey[800],
+                                child: const Icon(Icons.movie_creation_outlined, color: Colors.white30, size: 40),
+                              ),
+                          )
+                        : Container(
+                            width: 110,
+                            height: 170,
+                            color: Colors.grey[800],
+                            child: const Icon(Icons.movie_creation_outlined, color: Colors.white30, size: 40),
+                          ),
                   ),
                   if (isExpired) 
                     const Positioned.fill(
@@ -145,7 +242,7 @@ class BookingsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        booking.movie.title.toUpperCase(),
+                        movieTitle.toUpperCase(),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -185,6 +282,15 @@ class BookingsScreen extends StatelessWidget {
                               letterSpacing: 1.2,
                             ),
                           ),
+                          const Spacer(),
+                          Text(
+                            'Rs${booking.totalAmount.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              color: primaryRed,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -216,7 +322,7 @@ class BookingsScreen extends StatelessWidget {
                         color: isExpired ? Colors.white10 : accentYellow,
                       ),
                       iconSize: 32,
-                      onPressed: isExpired ? null : () => _showQrDialog(context, booking, qrData),
+                      onPressed: isExpired ? null : () => _showQrDialog(context, booking, qrData, movieTitle),
                     ),
                     const SizedBox(height: 15),
                     ...List.generate(3, (i) => Container(
@@ -258,7 +364,7 @@ class BookingsScreen extends StatelessWidget {
     );
   }
 
-  void _showQrDialog(BuildContext context, Booking booking, String qrData) {
+  void _showQrDialog(BuildContext context, Booking booking, String qrData, String movieTitle) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -299,7 +405,7 @@ class BookingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  booking.movie.title.toUpperCase(),
+                  movieTitle.toUpperCase(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
                 ),
@@ -307,6 +413,11 @@ class BookingsScreen extends StatelessWidget {
                 Text(
                   'SEATS: ${booking.seatNumbers.join(', ')}',
                   style: const TextStyle(color: accentYellow, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'TIME: ${booking.showtimeTime}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 11, letterSpacing: 1),
                 ),
                 const SizedBox(height: 24),
                 TextButton(

@@ -1,18 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:film_ticket_booking_app/config/theme_config.dart';
-import 'package:film_ticket_booking_app/models/dummy_data.dart';
+import 'package:film_ticket_booking_app/services/movie_service.dart';
 import 'package:film_ticket_booking_app/screens/home/movie_detail_screen.dart';
 import 'package:film_ticket_booking_app/screens/bookings/bookings_screen.dart';
 import 'package:film_ticket_booking_app/screens/profile/profile_screen.dart';
+import 'package:film_ticket_booking_app/models/movie.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  List<Movie> _movies = [];
+  List<Movie> _trendingMovies = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMovies();
+  }
+
+  Future<void> _loadMovies() async {
+    try {
+      final [allMovies, trendingMovies] = await Future.wait([
+        MovieService.getAllMovies(),
+        MovieService.getTrendingMovies(),
+      ]);
+      
+      setState(() {
+        _movies = allMovies;
+        _trendingMovies = trendingMovies;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading movies: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: backgroundBlack,
@@ -40,73 +72,82 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 100),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 🔥 Trending Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                child: Row(
-                  children: [
-                    Container(width: 4, height: 18, color: primaryRed),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'TRENDING NOW',
-                      style: TextStyle(
-                        fontSize: 14,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w800,
-                        color: foregroundLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _buildTrendingCarousel(context),
-              
-              const SizedBox(height: 32),
-
-              // 🎬 Now Showing Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(width: 4, height: 18, color: accentYellow),
-                        const SizedBox(width: 10),
-                        const Text(
-                          'NOW SHOWING',
-                          style: TextStyle(
-                            fontSize: 14,
-                            letterSpacing: 1.5,
-                            fontWeight: FontWeight.w800,
-                            color: foregroundLight,
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: primaryRed))
+            : RefreshIndicator(
+                onRefresh: _loadMovies,
+                color: primaryRed,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 🔥 Trending Header
+                      if (_trendingMovies.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                          child: Row(
+                            children: [
+                              Container(width: 4, height: 18, color: primaryRed),
+                              const SizedBox(width: 10),
+                              const Text(
+                                'TRENDING NOW',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  letterSpacing: 1.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: foregroundLight,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                    const Text(
-                      'VIEW ALL',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: accentYellow,
+                      
+                      if (_trendingMovies.isNotEmpty)
+                        _buildTrendingCarousel(context),
+                      
+                      const SizedBox(height: 32),
+
+                      // 🎬 Now Showing Header
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(width: 4, height: 18, color: accentYellow),
+                                const SizedBox(width: 10),
+                                const Text(
+                                  'NOW SHOWING',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    letterSpacing: 1.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: foregroundLight,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Text(
+                              'VIEW ALL',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: accentYellow,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildNowShowingGrid(context),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildNowShowingGrid(context),
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
         bottomNavigationBar: _buildCustomBottomNavBar(context),
       ),
     );
@@ -121,13 +162,13 @@ class HomeScreen extends StatelessWidget {
         enlargeCenterPage: true,
         viewportFraction: 0.75,
       ),
-      items: dummyMovies.take(3).map((movie) {
+      items: _trendingMovies.map((movie) {
         return GestureDetector(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => MovieDetailScreen(movie: movie),
+                builder: (_) => MovieDetailScreen(movieId: movie.id),
               ),
             );
           },
@@ -148,14 +189,21 @@ class HomeScreen extends StatelessWidget {
               children: [
                 // Movie poster
                 Hero(
-                  tag: 'movie-poster-${movie.movieId}',
+                  tag: 'movie-poster-${movie.id}',
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
+                    child: Image.network(
                       movie.posterUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: double.infinity,
+                      errorBuilder: (context, error, stackTrace) => 
+                        Container(
+                          color: Colors.grey[800],
+                          child: const Center(
+                            child: Icon(Icons.movie, color: Colors.white30, size: 50),
+                          ),
+                        ),
                     ),
                   ),
                 ),
@@ -198,7 +246,7 @@ class HomeScreen extends StatelessWidget {
                           const Icon(Icons.star_rounded, color: accentYellow, size: 20),
                           const SizedBox(width: 4),
                           Text(
-                            movie.rating.toString(),
+                            movie.rating.toStringAsFixed(1),
                             style: const TextStyle(
                               color: accentYellow,
                               fontWeight: FontWeight.bold,
@@ -235,10 +283,22 @@ class HomeScreen extends StatelessWidget {
 
   // ================= NOW SHOWING GRID =================
   Widget _buildNowShowingGrid(BuildContext context) {
+    if (_movies.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 50, horizontal: 20),
+        child: Center(
+          child: Text(
+            'No movies available',
+            style: TextStyle(color: Colors.white54, fontSize: 16),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GridView.builder(
-        itemCount: dummyMovies.length,
+        itemCount: _movies.length,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -248,13 +308,13 @@ class HomeScreen extends StatelessWidget {
           mainAxisSpacing: 20,
         ),
         itemBuilder: (context, index) {
-          final movie = dummyMovies[index];
+          final movie = _movies[index];
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => MovieDetailScreen(movie: movie),
+                  builder: (_) => MovieDetailScreen(movieId: movie.id),
                 ),
               );
             },
@@ -268,13 +328,20 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Hero(
-                      tag: 'grid-poster-${movie.movieId}',
+                      tag: 'grid-poster-${movie.id}',
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
-                        child: Image.asset(
+                        child: Image.network(
                           movie.posterUrl,
                           fit: BoxFit.cover,
                           width: double.infinity,
+                          errorBuilder: (context, error, stackTrace) => 
+                            Container(
+                              color: Colors.grey[800],
+                              child: const Center(
+                                child: Icon(Icons.movie, color: Colors.white30, size: 40),
+                              ),
+                            ),
                         ),
                       ),
                     ),
@@ -311,7 +378,7 @@ class HomeScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF09FBD3).withOpacity(0.8),
+                                color: const Color(0xFF09FBD3).withOpacity(0.8),
                               ),
                             ),
                           ],
@@ -340,7 +407,6 @@ class HomeScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _navBarItem(Icons.movie_creation_outlined, 'FILMS', true),
-
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -352,7 +418,6 @@ class HomeScreen extends StatelessWidget {
             },
             child: _navBarItem(Icons.confirmation_number_outlined, 'TICKETS', false),
           ),
-
           GestureDetector(
             onTap: () {
               Navigator.push(
