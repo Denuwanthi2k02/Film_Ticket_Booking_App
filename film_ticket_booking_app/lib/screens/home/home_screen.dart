@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       
                       const SizedBox(height: 32),
 
-                      // 🎬 Now Showing Header
+                      
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ================= TRENDING CAROUSEL =================
+  //TRENDING
   Widget _buildTrendingCarousel(BuildContext context) {
     return CarouselSlider(
       options: CarouselOptions(
@@ -187,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Stack(
               children: [
-                // Movie poster
+                
                 Hero(
                   tag: 'movie-poster-${movie.id}',
                   child: ClipRRect(
@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                // Premium Gradient overlay
+                
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
@@ -281,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ================= NOW SHOWING GRID =================
+  //  NOW SHOWING GRID
   Widget _buildNowShowingGrid(BuildContext context) {
     if (_movies.isEmpty) {
       return const Padding(
@@ -395,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ================= BOTTOM NAV =================
+  // BOTTOM NAV
   Widget _buildCustomBottomNavBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(top: 12, bottom: 24),

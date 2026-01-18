@@ -68,7 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: backgroundBlack,
       body: Stack(
         children: [
-          // 1. Decorative Background Elements
+          // Background 
           Positioned(
             bottom: -100,
             left: -100,
@@ -90,7 +90,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   const SizedBox(height: 40),
                   
-                  // 2. Back Button
+                  // Back Button
                   Align(
                     alignment: Alignment.centerLeft,
                     child: GestureDetector(
@@ -108,7 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 30),
                   
-                  // 3. Header Section
+                  //
                   const Text(
                     'CREATE ACCOUNT',
                     style: TextStyle(
@@ -131,7 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   
                   const SizedBox(height: 40),
 
-                  // 4. Input Fields
+                  // Input 
                   _buildTextField(
                     controller: nameController,
                     label: 'FULL NAME',
@@ -164,7 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 40),
 
-                  // 5. Register Button
+                  //Register Button
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
@@ -200,7 +200,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 30),
 
-                  // 6. Footer
+                  // Footer
                   Center(
                     child: GestureDetector(
                       onTap: () => Navigator.pop(context),

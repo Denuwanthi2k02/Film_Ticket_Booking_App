@@ -5,10 +5,6 @@ import 'package:film_ticket_booking_app/models/booking.dart';
 
 class BookingService {
   static const String baseUrl = "http://localhost:5000/api";
-  // For testing with real device, use your computer's IP:
-  // static const String baseUrl = "http://192.168.1.100:5000/api";
-
-  // Get authorization header
   static Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';

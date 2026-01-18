@@ -5,17 +5,17 @@ const authMiddleware = require("../middleware/auth");
 
 const router = express.Router();
 
-// Create a booking
+// Create booking
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const { movieId, showtimeId, seatNumbers, totalAmount } = req.body;
     
-    // Validate required fields
+    
     if (!movieId || !showtimeId || !seatNumbers || !totalAmount) {
       return res.status(400).json({ message: "All fields are required" });
     }
     
-    // Generate unique booking ID
+    
     const bookingId = `TB${Date.now()}${Math.floor(Math.random() * 1000)}`;
     
     const booking = new Booking({
@@ -30,7 +30,7 @@ router.post("/", authMiddleware, async (req, res) => {
     
     await booking.save();
     
-    // Update showtime available seats
+   
     await Showtime.findByIdAndUpdate(
       showtimeId,
       { $inc: { availableSeats: -seatNumbers.length } }
@@ -65,7 +65,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
     
     if (!booking) return res.status(404).json({ message: "Booking not found" });
     
-    // Check if user owns this booking
+   
     if (booking.userId.toString() !== req.userId.toString()) {
       return res.status(403).json({ message: "Unauthorized" });
     }

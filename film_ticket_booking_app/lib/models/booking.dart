@@ -4,8 +4,8 @@ import 'package:film_ticket_booking_app/models/showtime.dart';
 class Booking {
   final String id;
   final String bookingId;
-  final Movie? movie; // Make nullable
-  final Showtime? showtime; // Make nullable
+  final Movie? movie; 
+  final Showtime? showtime; 
   final List<String> seatNumbers;
   final double totalAmount;
   final String status;
@@ -21,7 +21,7 @@ class Booking {
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
-    // Helper function to safely parse Movie
+    
     Movie? parseMovie(dynamic movieData) {
       if (movieData is Map<String, dynamic>) {
         return Movie.fromJson(movieData);
@@ -29,7 +29,7 @@ class Booking {
       return null;
     }
 
-    // Helper function to safely parse Showtime
+    
     Showtime? parseShowtime(dynamic showtimeData) {
       if (showtimeData is Map<String, dynamic>) {
         return Showtime.fromJson(showtimeData);
@@ -37,16 +37,16 @@ class Booking {
       return null;
     }
 
-    // Extract movie data (could be nested in movieId field)
+    
     dynamic movieData = json['movieId'];
     if (movieData == null) {
-      movieData = json['movie']; // Alternative field name
+      movieData = json['movie']; 
     }
 
     // Extract showtime data
     dynamic showtimeData = json['showtimeId'];
     if (showtimeData == null) {
-      showtimeData = json['showtime']; // Alternative field name
+      showtimeData = json['showtime']; 
     }
 
     // Parse seat numbers safely
@@ -81,7 +81,7 @@ class Booking {
   String get showtimeTime => showtime?.time ?? '';
   double get showtimePrice => showtime?.price ?? 0.0;
 
-  // For debugging
+  
   @override
   String toString() {
     return 'Booking(id: $id, bookingId: $bookingId, movie: ${movie?.title}, seats: $seatNumbers)';

@@ -40,7 +40,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         totalAmount: widget.totalAmount,
       );
 
-      // Navigate to ticket screen with the actual booking ID from database
+       
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -52,7 +52,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               bookingId: booking.bookingId,
             ),
           ),
-          (route) => route.isFirst, // Go back to home after ticket
+          (route) => route.isFirst, // Go back home
         );
       }
     } catch (e) {

@@ -40,7 +40,7 @@ class TicketScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
           child: Column(
             children: [
-              // --- Ticket Card Container ---
+              // Ticket Card Container 
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -50,10 +50,10 @@ class TicketScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    // Top Section: Movie Branding
+                    
                     _buildTicketHeader(),
                     
-                    // Perforated Divider
+                    
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Row(
@@ -65,14 +65,14 @@ class TicketScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // Bottom Section: QR & Validation
+                    
                     _buildTicketFooter(),
                   ],
                 ),
               ),
               const SizedBox(height: 40),
               
-              // Back to Home Button
+            
               SizedBox(
                 width: double.infinity,
                 height: 60,

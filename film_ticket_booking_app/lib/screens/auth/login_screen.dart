@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: backgroundBlack,
       body: Stack(
         children: [
-          // 1. Decorative Background Elements
+          //Background 
           Positioned(
             top: -100,
             right: -100,
@@ -82,7 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const SizedBox(height: 80),
                   
-                  // 2. Logo / Header Section
                   Center(
                     child: Container(
                       padding: const EdgeInsets.all(20),
@@ -117,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   
                   const SizedBox(height: 60),
 
-                  // 3. Input Fields
+                  //Input 
                   _buildTextField(
                     controller: emailController,
                     label: 'EMAIL ADDRESS',
@@ -147,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 40),
 
-                  // 4. Login Button
+                  // Login 
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
@@ -183,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 40),
 
-                  // 5. Register Link
+                  //Register Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

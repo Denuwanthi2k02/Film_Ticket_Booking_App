@@ -14,8 +14,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Cinema Booking',
-      theme: appTheme, // Use the custom dark theme
-      home: const LoginScreen(), // Start with the login screen
+      theme: appTheme, 
+      home: const LoginScreen(), 
     );
   }
 }

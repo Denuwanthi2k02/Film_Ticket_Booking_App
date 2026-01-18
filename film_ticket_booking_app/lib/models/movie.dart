@@ -32,7 +32,6 @@ class Movie {
     );
   }
 
-  // Optional: Add toJson method if needed
   Map<String, dynamic> toJson() {
     return {
       'id': id,

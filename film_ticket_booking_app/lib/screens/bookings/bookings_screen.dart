@@ -90,7 +90,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
     );
   }
 
-  // ================= EMPTY STATE =================
+  // EMPTY STATE 
   Widget _emptyState() {
     return Center(
       child: Column(
@@ -136,11 +136,11 @@ class _BookingsScreenState extends State<BookingsScreen> {
     );
   }
 
-  // ================= CREATIVE BOOKING CARD =================
+  //CREATIVE BOOKING CARD 
   Widget _bookingCard(BuildContext context, Booking booking) {
     const Color neonCyan = Color(0xFF09FBD3);
     
-    // Use helper methods or direct properties (using the helper getters from Booking model)
+    
     final movieTitle = booking.movieTitle;
     final posterUrl = booking.movie?.posterUrl ?? '';
     final showtimeDate = booking.showtimeDate;
@@ -148,7 +148,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
     final formattedDate = DateFormat('EEE, MMM d').format(showtimeDate);
     final formattedDateTime = '$formattedDate at $showtimeTime';
     
-    // Check if booking is expired (showtime date is in the past)
+    // Check booking is expired
     final isExpired = showtimeDate.isBefore(DateTime.now()) || 
                       booking.status.toLowerCase() == 'expired';
     
@@ -169,7 +169,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Movie Poster Section
+              //Movie 4to
               Stack(
                 children: [
                   ColorFiltered(
@@ -234,7 +234,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 ],
               ),
 
-              // 2. Booking Info Section
+              // Info
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -257,7 +257,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       _buildDetailRow(Icons.chair_alt_rounded, 'Seats: ${booking.seatNumbers.join(', ')}', isExpired),
                       const Spacer(),
                       
-                      // Status Indicator
+                      
                       Row(
                         children: [
                           Container(
@@ -298,7 +298,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 ),
               ),
 
-              // 3. QR TICKET ACTION SECTION
+              //QR TICKET
               Container(
                 width: 75,
                 decoration: BoxDecoration(
@@ -308,7 +308,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Visual Divider Dots (Ticket aesthetic)
+                    // Visual Divider Dots 
                     ...List.generate(3, (i) => Container(
                       margin: const EdgeInsets.symmetric(vertical: 2),
                       width: 4,

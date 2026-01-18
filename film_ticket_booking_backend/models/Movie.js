@@ -10,7 +10,7 @@ const movieSchema = new mongoose.Schema({
     required: true
   },
   duration: {
-    type: Number, // in minutes
+    type: Number, 
     required: true
   },
   language: {

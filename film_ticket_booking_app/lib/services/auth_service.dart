@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user.dart'; // make sure you have a User model
+import '../models/user.dart'; 
 
 class AuthService {
   static const String baseUrl = "http://localhost:5000/api/auth";
@@ -17,7 +17,7 @@ class AuthService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final prefs = await SharedPreferences.getInstance();
-      prefs.setString('token', data['token']); // Save JWT token
+      prefs.setString('token', data['token']); 
       return true;
     }
     return false;
@@ -37,10 +37,10 @@ class AuthService {
       }),
     );
 
-    if (response.statusCode == 201) { // <-- changed from 200 to 201
+    if (response.statusCode == 201) { 
     final data = jsonDecode(response.body);
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('token', data['token']); // Save JWT token
+    prefs.setString('token', data['token']); 
     return true;
   } else {
     final errorData = jsonDecode(response.body);

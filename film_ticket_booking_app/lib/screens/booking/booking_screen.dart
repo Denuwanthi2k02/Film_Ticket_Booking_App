@@ -37,7 +37,7 @@ class _BookingScreenState extends State<BookingScreen> {
         if (showtimes.isNotEmpty) {
           _selectedDate = showtimes.first.date;
           _selectedShowtime = showtimes.first;
-          _seats = _generateSeats(); // Generate seats based on showtime
+          _seats = _generateSeats(); 
         }
         _isLoading = false;
       });
@@ -48,8 +48,6 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   List<Seat> _generateSeats() {
-    // Generate seats dynamically based on showtime
-    // You might want to store seat data in database too
     List<Seat> seats = [];
     const int rows = 8;
     const int cols = 10;
@@ -59,10 +57,9 @@ class _BookingScreenState extends State<BookingScreen> {
       for (int j = 1; j <= cols; j++) {
         String seatNum = '$row$j';
         SeatType type = i < 2 ? SeatType.premium : SeatType.standard;
-        SeatStatus status = SeatStatus.available; // Default to available
+        SeatStatus status = SeatStatus.available; 
         
-        // TODO: Check seat availability from database
-        // For now, mark some seats as booked randomly
+        
         if (j % 5 == 0 && i < 6) {
           status = SeatStatus.booked;
         }
@@ -96,7 +93,7 @@ class _BookingScreenState extends State<BookingScreen> {
   void _selectDate(DateTime date) {
     setState(() {
       _selectedDate = date;
-      // Find showtime for selected date
+    
       _selectedShowtime = _showtimes.firstWhere(
         (st) => DateUtils.isSameDay(st.date, date),
         orElse: () => _showtimes.first,

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../config/theme_config.dart'; // Using backgroundBlack, primaryRed, accentYellow, etc.
+import '../../config/theme_config.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
+import '../auth/login_screen.dart';
+import '../bookings/bookings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Creative Palette extension based on existing theme
     const Color neonCyan = Color(0xFF09FBD3);
-    const Color glassWhite = Colors.white10;
 
     return Scaffold(
       backgroundColor: backgroundBlack,
@@ -54,25 +54,20 @@ class ProfileScreen extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                // --- Creative Header with Gradient & Avatar ---
+                // PROFILE HEADER
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Dynamic background glow
                     Container(
                       height: 380,
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF3E060E), // Deep muted red
-                            backgroundBlack,
-                          ],
+                          colors: [Color(0xFF3E060E), backgroundBlack],
                         ),
                       ),
                     ),
-                    // Glassmorphic Ring
                     Positioned(
                       top: 100,
                       child: Container(
@@ -81,14 +76,16 @@ class ProfileScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: primaryRed.withOpacity(0.05),
-                          border: Border.all(color: primaryRed.withOpacity(0.1), width: 1),
+                          border: Border.all(
+                            color: primaryRed.withOpacity(0.1),
+                            width: 1,
+                          ),
                         ),
                       ),
                     ),
                     Column(
                       children: [
                         const SizedBox(height: 110),
-                        // Avatar with Neon-bordered Container
                         Container(
                           padding: const EdgeInsets.all(3),
                           decoration: const BoxDecoration(
@@ -101,7 +98,9 @@ class ProfileScreen extends StatelessWidget {
                             radius: 65,
                             backgroundColor: bookedGrey,
                             child: Text(
-                              user.name.isNotEmpty ? user.name[0].toUpperCase() : "?",
+                              user.name.isNotEmpty
+                                  ? user.name[0].toUpperCase()
+                                  : "?",
                               style: const TextStyle(
                                 fontSize: 56,
                                 fontWeight: FontWeight.bold,
@@ -122,7 +121,8 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
                             color: accentYellow.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
@@ -144,30 +144,57 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 40),
 
-                // --- Details & Preferences ---
+                // DETAILS & MENU
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const _SectionHeader(title: "PERSONAL INFO", color: primaryRed),
+                      const _SectionHeader(
+                        title: "PERSONAL INFO",
+                        color: primaryRed,
+                      ),
                       const SizedBox(height: 16),
                       _buildInfoBox(Icons.alternate_email, "Email", user.email),
                       _buildInfoBox(Icons.phone_android, "Phone", user.phone),
-                      
+
                       const SizedBox(height: 32),
-                      
-                      const _SectionHeader(title: "CINEMA SETTINGS", color: accentYellow),
+
+                      const _SectionHeader(
+                        title: "CINEMA SETTINGS",
+                        color: accentYellow,
+                      ),
                       const SizedBox(height: 16),
-                      _buildMenuTile(Icons.history, "Booking History", Colors.white),
-                      _buildMenuTile(Icons.local_activity_outlined, "Active Tickets", neonCyan),
-                      _buildMenuTile(Icons.favorite_outline, "My Watchlist", primaryRed),
-                      
+                      _buildMenuTile(
+                        Icons.history,
+                        "Booking History",
+                        Colors.white,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const BookingsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
                       const SizedBox(height: 40),
-                      
-                      // Creative Logout Button
+
+                      // SIGN OUT
                       InkWell(
-                        onTap: () {},
+                        onTap: () async {
+                          await AuthService.logout();
+                          if (!context.mounted) return;
+
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        },
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           width: double.infinity,
@@ -200,22 +227,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: Colors.white38, letterSpacing: 1),
-        ),
-      ],
-    );
-  }
-
+  // INFO BOX
   Widget _buildInfoBox(IconData icon, String label, String value) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -232,8 +244,14 @@ class ProfileScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10)),
-              Text(value, style: const TextStyle(color: foregroundLight, fontSize: 14, fontWeight: FontWeight.w500)),
+              Text(label,
+                  style: const TextStyle(color: Colors.white38, fontSize: 10)),
+              Text(value,
+                  style: const TextStyle(
+                    color: foregroundLight,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  )),
             ],
           ),
         ],
@@ -241,21 +259,32 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuTile(IconData icon, String title, Color color) {
+  // MENU TILE
+  Widget _buildMenuTile(
+    IconData icon,
+    String title,
+    Color color, {
+    VoidCallback? onTap,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         tileColor: Colors.white.withOpacity(0.02),
         leading: Icon(icon, color: color, size: 22),
-        title: Text(title, style: const TextStyle(color: foregroundLight, fontSize: 15)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white24, size: 18),
-        onTap: () {},
+        title: Text(
+          title,
+          style: const TextStyle(color: foregroundLight, fontSize: 15),
+        ),
+        trailing: const Icon(Icons.chevron_right,
+            color: Colors.white24, size: 18),
+        onTap: onTap ?? () {},
       ),
     );
   }
 }
 
+// SECTION HEADER
 class _SectionHeader extends StatelessWidget {
   final String title;
   final Color color;

@@ -18,7 +18,6 @@ class Showtime {
   });
 
   factory Showtime.fromJson(Map<String, dynamic> json) {
-    // Handle date parsing safely
     DateTime parseDate(dynamic dateValue) {
       if (dateValue is DateTime) return dateValue;
       if (dateValue is String) {

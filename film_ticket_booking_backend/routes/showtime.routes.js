@@ -10,7 +10,7 @@ router.get("/movie/:movieId", async (req, res) => {
     const { movieId } = req.params;
     const showtimes = await Showtime.find({ 
       movieId,
-      date: { $gte: new Date() } // Only future showtimes
+      date: { $gte: new Date() } 
     }).sort({ date: 1, time: 1 });
     
     res.status(200).json(showtimes);
@@ -33,7 +33,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create showtime (Admin only - optional)
+// Create showtime 
 router.post("/", async (req, res) => {
   try {
     const showtime = new Showtime(req.body);

@@ -85,7 +85,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             ],
           ),
 
-          // BACK BUTTON (Glassmorphic)
+          
           Positioned(
             top: 50,
             left: 20,
@@ -103,7 +103,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             ),
           ),
 
-          // NEON BOOK TICKETS BUTTON
+          
           Positioned(
             bottom: 0,
             left: 0,
@@ -168,7 +168,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     );
   }
 
-  // ================= SLIVER APP BAR =================
+  // SLIVER APP BAR 
   Widget _buildSliverAppBar(BuildContext context, Movie movie) {
     return SliverAppBar(
       automaticallyImplyLeading: false,
@@ -177,11 +177,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         background: Hero(
-          tag: 'movie-poster-${movie.id}', // Updated from movie.movieId to movie.id
+          tag: 'movie-poster-${movie.id}',
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Use Image.network for database URL instead of Image.asset
+              
               Image.network(
                 movie.posterUrl,
                 fit: BoxFit.cover,
@@ -209,7 +209,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                   );
                 },
               ),
-              // Sophisticated Gradient for text readability
+              
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -232,7 +232,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     );
   }
 
-  // ================= DETAILS =================
+  //  DETAILS 
   Widget _buildSliverDetails(Color neonCyan, Movie movie) {
     return SliverList(
       delegate: SliverChildListDelegate(
@@ -271,7 +271,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                           const Icon(Icons.star_rounded, color: accentYellow, size: 20),
                           const SizedBox(width: 4),
                           Text(
-                            movie.rating.toStringAsFixed(1), // Format rating
+                            movie.rating.toStringAsFixed(1), 
                             style: const TextStyle(
                               color: accentYellow,
                               fontSize: 16,

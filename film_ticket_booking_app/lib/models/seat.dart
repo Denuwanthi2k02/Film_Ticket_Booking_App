@@ -14,7 +14,6 @@ class Seat {
     required this.status,
   });
 
-  // Helper method to create a copy with a new status (for state management)
   Seat copyWith({SeatStatus? status}) {
     return Seat(
       seatId: seatId,
